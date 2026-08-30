@@ -1,0 +1,61 @@
+{
+  "response": {
+    "status": {
+      "code": 200
+    },
+    "request_types": [
+      {
+        "request_type": {
+          "id": 1011942,
+          "name": "Synthetic sign report",
+          "description": "Test fixture only",
+          "confirmation": "Synthetic confirmation",
+          "address_requirement": "REQUIRED",
+          "description_requirement": "OPTIONAL",
+          "allow_anonymous": 1,
+          "force_private": 0,
+          "allow_residents_to_mark_private": true,
+          "geo_fence_id": 42,
+          "geocoder": {
+            "type": "Synthetic"
+          },
+          "custom_fields": [
+            {
+              "custom_field": {
+                "id": 7001,
+                "name": "Sign type",
+                "description": "Choose one",
+                "type": "singleselect",
+                "required": 1,
+                "options": [
+                  {
+                    "option": {
+                      "name": "Temporary",
+                      "description": "Synthetic option"
+                    }
+                  },
+                  {
+                    "option": {
+                      "name": "Permanent",
+                      "description": null
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "custom_field": {
+                "id": 7002,
+                "name": "Notes",
+                "description": null,
+                "type": "text",
+                "required": false,
+                "options": []
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

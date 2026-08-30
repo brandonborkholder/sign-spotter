@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#162334" />
+    <title>Sign Vigilante — M0 Probe</title>
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <p class="eyebrow">Sign Vigilante · Milestone M0</p>
+        <h1>PublicStuff integration probe</h1>
+        <p class="lede">
+          Verify Loudoun County's public request schema and browser access from
+          this exact origin.
+        </p>
+      </header>
+
+      <section class="safety" aria-label="Safety notice">
+        <strong>Read only — this page cannot submit a report.</strong>
+        It makes two metadata <code>GET</code> requests. There is no submission
+        request in this build.
+      </section>
+
+      <section class="card" aria-labelledby="target-title">
+        <div class="card-heading">
+          <div>
+            <p class="step">Step 1</p>
+            <h2 id="target-title">Confirm the target</h2>
+          </div>
+          <span class="badge">No sign-in</span>
+        </div>
+        <dl class="facts">
+          <div>
+            <dt>Page origin</dt>
+            <dd id="page-origin"></dd>
+          </div>
+          <div>
+            <dt>Client</dt>
+            <dd><code>1295</code></dd>
+          </div>
+          <div>
+            <dt>Request type</dt>
+            <dd><code>1011942</code></dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="card" aria-labelledby="run-title">
+        <div class="card-heading">
+          <div>
+            <p class="step">Step 2</p>
+            <h2 id="run-title">Run the browser probe</h2>
+          </div>
+          <span id="overall-status" class="status status-idle">Not run</span>
+        </div>
+        <p>
+          Run this once from the published GitHub Pages URL on Android Chrome.
+          The result proves whether PublicStuff accepts requests from that
+          browser origin.
+        </p>
+        <button id="run-probe" type="button">Run read-only probe</button>
+
+        <div id="request-results" class="results" aria-live="polite"></div>
+      </section>
+
+      <section id="schema-section" class="card" aria-labelledby="schema-title" hidden>
+        <div class="card-heading">
+          <div>
+            <p class="step">Step 3</p>
+            <h2 id="schema-title">Review detected schema</h2>
+          </div>
+          <span id="schema-status" class="status"></span>
+        </div>
+        <div id="schema-summary"></div>
+      </section>
+
+      <section id="export-section" class="card" aria-labelledby="export-title" hidden>
+        <div class="card-heading">
+          <div>
+            <p class="step">Step 4</p>
+            <h2 id="export-title">Save redacted evidence</h2>
+          </div>
+          <span class="badge">Safe to inspect</span>
+        </div>
+        <p>
+          The export contains normalized schema and diagnostics only. It omits
+          raw responses, coordinates, addresses, contact details, credentials,
+          and tokens.
+        </p>
+        <div class="button-row">
+          <button id="download-result" type="button" class="secondary">
+            Download JSON
+          </button>
+          <button id="copy-result" type="button" class="secondary">
+            Copy JSON
+          </button>
+        </div>
+        <p id="export-feedback" class="feedback" aria-live="polite"></p>
+      </section>
+
+      <section class="card compact" aria-labelledby="limits-title">
+        <h2 id="limits-title">What this does not prove</h2>
+        <p>
+          A successful metadata probe does not prove that photo upload or
+          authenticated submission is allowed. Those checks require one
+          legitimate, explicitly confirmed report. Do not create a fake county
+          complaint for testing.
+        </p>
+      </section>
+
+      <footer>
+        <a
+          href="https://iframe.publicstuff.com/#/?client_id=1295&amp;request_type_id=1011942"
+          rel="noreferrer"
+        >Open the official Loudoun County form</a>
+        <span>Build <code>m0-probe-1</code></span>
+      </footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
