@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && npm run test:safety",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:safety": "node scripts/assert-no-submit-endpoint.mjs",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",

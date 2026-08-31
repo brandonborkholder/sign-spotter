@@ -1,0 +1,54 @@
+{
+  "id": "/sign-vigilante/",
+  "name": "Sign Vigilante",
+  "short_name": "Sign Vigilante",
+  "description": "Fast capture workflow for Loudoun County sign violations.",
+  "start_url": "/sign-vigilante/?capture=1",
+  "scope": "/sign-vigilante/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#101b22",
+  "theme_color": "#101b22",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Capture sign",
+      "short_name": "Capture",
+      "description": "Open Sign Vigilante directly to the camera.",
+      "url": "/sign-vigilante/?capture=1",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

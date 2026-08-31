@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101b22" />
+    <title>Sign Vigilante — Offline</title>
+    <style>
+      :root { color: #eaf0f2; background: #101b22; font-family: system-ui, sans-serif; }
+      body { display: grid; place-items: center; min-height: 100vh; margin: 0; }
+      main { width: min(100% - 2rem, 420px); text-align: center; }
+      strong { color: #f1774d; }
+      button { min-height: 48px; border: 0; border-radius: 12px; padding: .75rem 1rem; background: #e45d2f; color: white; font: inherit; font-weight: 800; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><strong>Sign Vigilante</strong></p>
+      <h1>You're offline</h1>
+      <p>Reconnect to sign in or finish loading the app. A draft already saved on this phone remains in local storage.</p>
+      <button onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>
