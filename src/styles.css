@@ -171,7 +171,8 @@ input[readonly] { background: #eef2f3; color: var(--muted); }
 .compact-summary strong { color: var(--ink); }
 .quick-review-form .feedback { margin: .25rem 0; font-size: .75rem; }
 .submit-dock { position: fixed; z-index: 5; right: 0; bottom: 0; left: 0; padding: .55rem .75rem calc(.45rem + var(--safe-bottom)); border-top: 1px solid var(--line); background: #fffffff5; box-shadow: 0 -8px 24px rgb(16 27 34 / 10%); }
-.submit-dock .primary-button { min-height: 48px; }
+.submit-actions { display: grid; grid-template-columns: minmax(82px, .3fr) minmax(0, 1fr); gap: .55rem; }
+.submit-actions .primary-button, .submit-actions .secondary-button { width: 100%; min-height: 48px; }
 .submit-dock span { display: block; margin-top: .18rem; color: var(--muted); text-align: center; font-size: .65rem; }
 
 .settings-actions { display: grid; gap: 1rem; margin: 1rem 0; padding: 1rem; border-radius: 16px; background: var(--paper); text-align: center; }

@@ -331,7 +331,10 @@ function renderReview(): void {
           <p class="compact-summary"><strong>Photo + location</strong><span id="contact-summary"></span></p>
           <p id="review-feedback" class="feedback" role="alert"></p>
           <div class="submit-dock">
-            <button id="complete-mock" class="primary-button" type="submit" disabled>Submit (M1 test)</button>
+            <div class="submit-actions">
+              <button id="reset-capture" class="secondary-button" type="button">Reset</button>
+              <button id="complete-mock" class="primary-button" type="submit" disabled>Submit (M1 test)</button>
+            </div>
             <span>No complaint will be sent</span>
           </div>
         </form>
@@ -347,6 +350,11 @@ function renderReview(): void {
   bindSettingsButton("review");
 
   requireElement<HTMLButtonElement>("retake").addEventListener("click", async () => {
+    await repository.deleteDraft();
+    draft = null;
+    navigate("capture");
+  });
+  requireElement<HTMLButtonElement>("reset-capture").addEventListener("click", async () => {
     await repository.deleteDraft();
     draft = null;
     navigate("capture");
