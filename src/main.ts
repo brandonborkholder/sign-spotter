@@ -8,6 +8,7 @@ import {
   startCamera,
 } from "./camera";
 import { formatCoordinates, getCurrentLocation, locationQuality } from "./location";
+import { reverseGeocode } from "./geocoding";
 import { completeMockReport, MockValidationError } from "./mock-gateway";
 import { AppRepository } from "./storage";
 import type { CapturedLocation, MockReceipt, PendingDraft, Profile } from "./types";
@@ -294,6 +295,35 @@ async function storeCapturedPhoto(photo: Blob): Promise<void> {
   };
   await repository.saveDraft(draft);
   navigate("review");
+  if (draft.location) void resolveDraftAddress(draft.location, false);
+}
+
+async function resolveDraftAddress(location: CapturedLocation, announceResult = true): Promise<void> {
+  if (!draft || screen !== "review") return;
+  const feedback = requireElement<HTMLElement>("address-status");
+  const addressInput = requireElement<HTMLInputElement>("violation-address");
+  const addressBeforeLookup = addressInput.value;
+  feedback.textContent = "Looking up street address…";
+  feedback.className = "field-hint address-loading";
+  try {
+    const address = await reverseGeocode(location);
+    if (!draft || screen !== "review" || draft.location !== location) return;
+    if (addressInput.value !== addressBeforeLookup) {
+      feedback.textContent = "Your edited address was kept.";
+      feedback.className = "field-hint address-success";
+      return;
+    }
+    draft.violationAddress = address;
+    addressInput.value = address;
+    await repository.saveDraft(draft);
+    feedback.textContent = "Address found. Verify or edit it before continuing.";
+    feedback.className = "field-hint address-success";
+    if (announceResult) announce("Location and address updated.");
+  } catch (error) {
+    if (!draft || screen !== "review" || draft.location !== location) return;
+    feedback.textContent = error instanceof Error ? error.message : "Enter the address manually.";
+    feedback.className = "field-hint address-warning";
+  }
 }
 
 function renderReview(): void {
@@ -313,7 +343,8 @@ function renderReview(): void {
         <form id="review-form" class="form-card review-form">
           <div id="gps-panel" class="gps-panel"></div>
           <button id="refresh-location" class="secondary-button" type="button">Use current location again</button>
-          <label>Address or location of sign<input id="violation-address" autocomplete="street-address" required /></label>
+          <label>Address or location of sign<input id="violation-address" autocomplete="street-address" required /><span id="address-status" class="field-hint">Verify or edit the suggested address.</span></label>
+          <p class="field-hint">Address data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
           <label>Optional description<textarea id="description" rows="3" placeholder="Anything else staff should know?"></textarea></label>
           <div class="privacy-note"><strong>Submitted privately</strong><span>Loudoun forces this complaint type to private.</span></div>
           <div class="contact-summary"><strong>Contact</strong><span id="contact-summary"></span></div>
@@ -346,7 +377,7 @@ function renderReview(): void {
       draft!.location = await getCurrentLocation();
       await repository.saveDraft(draft!);
       renderGpsPanel();
-      announce("Location updated.");
+      await resolveDraftAddress(draft!.location, true);
     } catch (error) {
       setFeedback(
         "review-feedback",

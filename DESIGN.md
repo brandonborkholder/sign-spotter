@@ -364,7 +364,8 @@ Exit: exact payload and transport are known.
 - Camera, photo resize, GPS, and review screen.
 - Mock gateway and pending-draft recovery.
 
-Implementation status: built in `m1-capture-1`; awaiting Android acceptance.
+Implementation status: built in `m1-capture-1`, including editable reverse
+geocoding through OpenStreetMap Nominatim; awaiting Android acceptance.
 
 Exit: installable on the phone and usable end to end without transmitting.
 

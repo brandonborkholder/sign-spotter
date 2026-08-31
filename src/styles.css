@@ -127,6 +127,18 @@ input[readonly] { background: #eef2f3; color: var(--muted); }
 .location-good { color: #bdf1dd; }
 .location-warning { color: #ffe59b; }
 .location-error { color: #ffc6bf; }
+
+.field-hint {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.address-loading { color: #ffe59b; }
+.address-success { color: #bdf1dd; }
+.address-warning { color: #ffc6bf; }
 .camera-actions { position: absolute; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: 1fr 86px 1fr; align-items: center; min-height: 105px; padding: .65rem 1.1rem calc(.65rem + var(--safe-bottom)); background: linear-gradient(transparent, #05090bed 34%); }
 .shutter { display: grid; place-items: center; width: 74px; height: 74px; margin: auto; border: 4px solid white; border-radius: 50%; background: transparent; }
 .shutter span { width: 56px; height: 56px; border-radius: 50%; background: white; }
