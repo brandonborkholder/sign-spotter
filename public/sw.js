@@ -1,4 +1,4 @@
-const CACHE_NAME = "sign-spotter-m1-capture-1";
+const CACHE_NAME = "sign-spotter-m1-capture-2";
 const BASE_PATH = "/sign-spotter/";
 const APP_SHELL = [BASE_PATH, `${BASE_PATH}offline.html`, `${BASE_PATH}manifest.webmanifest`];
 

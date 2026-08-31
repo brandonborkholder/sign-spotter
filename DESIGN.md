@@ -12,7 +12,7 @@ Make reporting a Loudoun County sign violation as close as practical to this flo
 
 1. Launch Sign Spotter from the Android home screen.
 2. See the rear camera immediately (after one-time permission/setup).
-3. Take one photo while the app obtains the current location.
+3. Take one photo; the app immediately obtains the current location.
 4. Review the photo, resolved address, and a short optional note.
 5. Tap **Submit report** once.
 6. See a county request ID or a clear, recoverable failure.
@@ -75,7 +75,10 @@ Fallback: if `getUserMedia()` fails, show a large native file input using `accep
 
 ### Location
 
-Geolocation also requires HTTPS and explicit permission. Start a high-accuracy location request concurrently with camera startup. Keep the most recent reading only if it is fresh and sufficiently accurate. The user must see and be able to correct the selected address/location before submission.
+Geolocation also requires HTTPS and explicit permission. Start a high-accuracy
+location request immediately after the shutter so it does not delay the camera.
+The user must see and be able to correct the selected address/location before
+submission.
 
 ### The county form cannot be auto-filled in an iframe
 
@@ -169,11 +172,11 @@ Settings must provide **Edit contact info**, **Reconnect PublicStuff**, **Reset 
 
 ### Normal launch: capture
 
-1. Render the shell immediately with “Starting camera…” and “Finding location…”.
+1. Render the shell immediately with “Starting camera…”.
 2. Start the rear camera with `facingMode: { ideal: "environment" }`.
-3. Start `getCurrentPosition()` with high accuracy and a reasonable timeout; accept a slightly stale cached fix initially while a better fix is sought.
-4. Show the full-screen camera and one large shutter button.
-5. On shutter, freeze the image and stop the stream.
+3. Show the full-screen camera and one large shutter button.
+4. On shutter, freeze the image, stop the stream, and start
+   `getCurrentPosition()` with high accuracy and a reasonable timeout.
 
 The app should not submit directly from the shutter. A review screen prevents accidental government reports and lets the user catch a bad location.
 
@@ -183,7 +186,7 @@ Show:
 
 - Photo preview with **Retake**.
 - Resolved street address and a small accuracy indicator.
-- **Use current location again** and **Edit address / move pin**.
+- **Retry location** and an editable address.
 - Optional short description, with any verified required custom fields.
 - A notice that this request type is forced private by Loudoun County.
 - One prominent **Submit report** button.
@@ -364,7 +367,7 @@ Exit: exact payload and transport are known.
 - Camera, photo resize, GPS, and review screen.
 - Mock gateway and pending-draft recovery.
 
-Implementation status: built in `m1-capture-1`, including editable reverse
+Implementation status: built in `m1-capture-2`, including editable reverse
 geocoding through OpenStreetMap Nominatim; awaiting Android acceptance.
 
 Exit: installable on the phone and usable end to end without transmitting.

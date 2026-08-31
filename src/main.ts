@@ -15,7 +15,7 @@ import type { CapturedLocation, MockReceipt, PendingDraft, Profile } from "./typ
 
 type Screen = "onboarding" | "capture" | "review" | "settings" | "success";
 
-const BUILD = "m1-capture-1";
+const BUILD = "m1-capture-2";
 const OFFICIAL_FORM =
   "https://iframe.publicstuff.com/#/?client_id=1295&request_type_id=1011942";
 const repository = new AppRepository();
@@ -29,7 +29,6 @@ let draft: PendingDraft | null = null;
 let receipt: MockReceipt | null = null;
 let cameraSession: CameraSession | null = null;
 let captureAttempt = 0;
-let currentLocation: CapturedLocation | null = null;
 let reviewPhotoUrl: string | null = null;
 let draftSaveTimer: number | null = null;
 
@@ -63,7 +62,7 @@ function appHeader(title: string, showSettings = false): string {
   return `
     <header class="app-header">
       <div class="brand-lockup">
-        <span class="mini-mark" aria-hidden="true">SV</span>
+        <span class="mini-mark" aria-hidden="true">SS</span>
         <div><p class="eyebrow">Sign Spotter</p><h1>${title}</h1></div>
       </div>
       ${showSettings ? '<button id="open-settings" class="icon-button" type="button" aria-label="Settings">⚙</button>' : ""}
@@ -198,7 +197,6 @@ function profileFromSetup(apiKey: string): Profile {
 }
 
 function renderCapture(): void {
-  currentLocation = null;
   root.innerHTML = `
     <main class="capture-page">
       ${appHeader("Capture sign", true)}
@@ -206,9 +204,7 @@ function renderCapture(): void {
         <video id="camera-preview" playsinline muted></video>
         <div class="viewfinder" aria-hidden="true"><span></span></div>
         <div class="camera-message" id="camera-message">Starting rear camera…</div>
-        <div class="capture-hud">
-          <div id="location-chip" class="hud-chip"><span class="pulse-dot"></span> Finding GPS…</div>
-        </div>
+        <div class="capture-hud"><div class="hud-chip">Take one clear photo</div></div>
         <div class="camera-actions">
           <label class="photo-fallback" for="photo-file">Choose photo</label>
           <input id="photo-file" class="sr-only" type="file" accept="image/*" capture="environment" />
@@ -227,20 +223,6 @@ async function activateCapture(): Promise<void> {
   const video = requireElement<HTMLVideoElement>("camera-preview");
   const shutter = requireElement<HTMLButtonElement>("shutter");
   const cameraMessage = requireElement<HTMLElement>("camera-message");
-  const locationChip = requireElement<HTMLElement>("location-chip");
-
-  void getCurrentLocation()
-    .then((location) => {
-      if (attempt !== captureAttempt) return;
-      currentLocation = location;
-      locationChip.className = `hud-chip location-${locationQuality(location.accuracyMeters)}`;
-      locationChip.textContent = `GPS ±${location.accuracyMeters} m`;
-    })
-    .catch((error) => {
-      if (attempt !== captureAttempt) return;
-      locationChip.className = "hud-chip location-error";
-      locationChip.textContent = error instanceof Error ? error.message : "GPS unavailable";
-    });
 
   try {
     cameraSession = await startCamera(video);
@@ -287,7 +269,7 @@ async function storeCapturedPhoto(photo: Blob): Promise<void> {
     id: crypto.randomUUID(),
     requestTypeId: 1011942,
     photo,
-    location: currentLocation,
+    location: null,
     violationAddress: "",
     description: "",
     capturedAt: new Date().toISOString(),
@@ -295,7 +277,6 @@ async function storeCapturedPhoto(photo: Blob): Promise<void> {
   };
   await repository.saveDraft(draft);
   navigate("review");
-  if (draft.location) void resolveDraftAddress(draft.location, false);
 }
 
 async function resolveDraftAddress(location: CapturedLocation, announceResult = true): Promise<void> {
@@ -318,6 +299,7 @@ async function resolveDraftAddress(location: CapturedLocation, announceResult = 
     await repository.saveDraft(draft);
     feedback.textContent = "Address found. Verify or edit it before continuing.";
     feedback.className = "field-hint address-success";
+    updateSubmitState();
     if (announceResult) announce("Location and address updated.");
   } catch (error) {
     if (!draft || screen !== "review" || draft.location !== location) return;
@@ -333,24 +315,25 @@ function renderReview(): void {
   }
   reviewPhotoUrl = URL.createObjectURL(draft.photo);
   root.innerHTML = `
-    <main class="page review-page">
-      ${appHeader("Review report", true)}
-      <section class="review-grid">
-        <div class="photo-card">
+    <main class="quick-review-page">
+      ${appHeader("Ready to submit", true)}
+      <section class="quick-review-content">
+        <div class="quick-photo-card">
           <img id="photo-preview" alt="Captured sign violation" />
           <button id="retake" class="photo-action" type="button">Retake</button>
         </div>
-        <form id="review-form" class="form-card review-form">
+        <form id="review-form" class="quick-review-form">
           <div id="gps-panel" class="gps-panel"></div>
-          <button id="refresh-location" class="secondary-button" type="button">Use current location again</button>
-          <label>Address or location of sign<input id="violation-address" autocomplete="street-address" required /><span id="address-status" class="field-hint">Verify or edit the suggested address.</span></label>
-          <p class="field-hint">Address data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
-          <label>Optional description<textarea id="description" rows="3" placeholder="Anything else staff should know?"></textarea></label>
-          <div class="privacy-note"><strong>Submitted privately</strong><span>Loudoun forces this complaint type to private.</span></div>
-          <div class="contact-summary"><strong>Contact</strong><span id="contact-summary"></span></div>
+          <button id="refresh-location" class="text-button compact-retry" type="button">Retry location</button>
+          <label class="compact-address">Sign location<input id="violation-address" autocomplete="street-address" required /><span id="address-status" class="field-hint">Getting your current location…</span></label>
+          <a class="map-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">Address © OpenStreetMap contributors</a>
+          <details class="optional-details"><summary>Add an optional note</summary><textarea id="description" rows="2" placeholder="Anything else staff should know?"></textarea></details>
+          <p class="compact-summary"><strong>Photo + location</strong><span id="contact-summary"></span></p>
           <p id="review-feedback" class="feedback" role="alert"></p>
-          <button id="complete-mock" class="primary-button" type="submit">Finish capture test</button>
-          <p class="test-explainer">This M1 button validates and clears the local draft. It does not contact the complaint endpoint.</p>
+          <div class="submit-dock">
+            <button id="complete-mock" class="primary-button" type="submit" disabled>Submit (M1 test)</button>
+            <span>No complaint will be sent</span>
+          </div>
         </form>
       </section>
     </main>
@@ -359,7 +342,7 @@ function renderReview(): void {
   requireElement<HTMLInputElement>("violation-address").value = draft.violationAddress;
   requireElement<HTMLTextAreaElement>("description").value = draft.description;
   requireElement<HTMLElement>("contact-summary").textContent =
-    `${profile.displayName} · ${profile.email} · ${profile.contactDisclosure === "Yes" ? "withhold contact info" : "disclosure allowed"}`;
+    `${profile.displayName} · private report`;
   renderGpsPanel();
   bindSettingsButton("review");
 
@@ -371,27 +354,14 @@ function renderReview(): void {
   requireElement<HTMLButtonElement>("refresh-location").addEventListener("click", async (event) => {
     await saveReviewFields();
     const button = event.currentTarget as HTMLButtonElement;
-    setBusy(button, true, "Finding GPS…");
-    setFeedback("review-feedback", "");
-    try {
-      draft!.location = await getCurrentLocation();
-      await repository.saveDraft(draft!);
-      renderGpsPanel();
-      await resolveDraftAddress(draft!.location, true);
-    } catch (error) {
-      setFeedback(
-        "review-feedback",
-        error instanceof Error ? error.message : "Could not update location.",
-      );
-    } finally {
-      setBusy(button, false, "");
-    }
+    await refreshDraftLocation(button);
   });
 
   for (const id of ["violation-address", "description"]) {
     requireElement<HTMLInputElement | HTMLTextAreaElement>(id).addEventListener("input", () => {
       if (draftSaveTimer !== null) window.clearTimeout(draftSaveTimer);
       draftSaveTimer = window.setTimeout(() => void saveReviewFields(), 250);
+      updateSubmitState();
     });
   }
 
@@ -417,13 +387,49 @@ function renderReview(): void {
       setBusy(button, false, "");
     }
   });
+
+  updateSubmitState();
+  if (!draft.location) void refreshDraftLocation();
+  else if (!draft.violationAddress) void resolveDraftAddress(draft.location, false);
+}
+
+async function refreshDraftLocation(button?: HTMLButtonElement): Promise<void> {
+  if (!draft || screen !== "review") return;
+  if (button) setBusy(button, true, "Finding GPS…");
+  const panel = requireElement<HTMLElement>("gps-panel");
+  panel.className = "gps-panel gps-missing";
+  panel.innerHTML = '<strong>Getting current location…</strong><span>Keep the phone near the sign.</span>';
+  setFeedback("review-feedback", "");
+  updateSubmitState();
+  try {
+    draft.location = await getCurrentLocation();
+    draft.violationAddress = "";
+    await repository.saveDraft(draft);
+    renderGpsPanel();
+    await resolveDraftAddress(draft.location, true);
+  } catch (error) {
+    setFeedback(
+      "review-feedback",
+      error instanceof Error ? error.message : "Could not update location.",
+    );
+    renderGpsPanel();
+  } finally {
+    if (button) setBusy(button, false, "");
+    updateSubmitState();
+  }
+}
+
+function updateSubmitState(): void {
+  const button = document.getElementById("complete-mock") as HTMLButtonElement | null;
+  const address = document.getElementById("violation-address") as HTMLInputElement | null;
+  if (button) button.disabled = !draft?.location || !address?.value.trim();
 }
 
 function renderGpsPanel(): void {
   const panel = requireElement<HTMLElement>("gps-panel");
   if (!draft?.location) {
     panel.className = "gps-panel gps-missing";
-    panel.innerHTML = "<strong>GPS missing</strong><span>Retry location before finishing the test.</span>";
+    panel.innerHTML = "<strong>Location unavailable</strong><span>Retry to enable submission.</span>";
     return;
   }
   const quality = locationQuality(draft.location.accuracyMeters);
