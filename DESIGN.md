@@ -1,4 +1,4 @@
-# Sign Vigilante: MVP design
+# Sign Spotter: MVP design
 
 Status: proposed
 
@@ -10,7 +10,7 @@ Target: installed PWA on one Android phone, hosted by GitHub Pages
 
 Make reporting a Loudoun County sign violation as close as practical to this flow:
 
-1. Launch Sign Vigilante from the Android home screen.
+1. Launch Sign Spotter from the Android home screen.
 2. See the rear camera immediately (after one-time permission/setup).
 3. Take one photo while the app obtains the current location.
 4. Review the photo, resolved address, and a short optional note.

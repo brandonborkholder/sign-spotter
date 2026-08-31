@@ -1,4 +1,4 @@
-# Sign Vigilante
+# Sign Spotter
 
 Android-first PWA for quickly capturing Loudoun County sign violations.
 

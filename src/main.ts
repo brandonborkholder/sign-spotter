@@ -64,7 +64,7 @@ function appHeader(title: string, showSettings = false): string {
     <header class="app-header">
       <div class="brand-lockup">
         <span class="mini-mark" aria-hidden="true">SV</span>
-        <div><p class="eyebrow">Sign Vigilante</p><h1>${title}</h1></div>
+        <div><p class="eyebrow">Sign Spotter</p><h1>${title}</h1></div>
       </div>
       ${showSettings ? '<button id="open-settings" class="icon-button" type="button" aria-label="Settings">⚙</button>' : ""}
     </header>
@@ -617,7 +617,7 @@ async function boot(): Promise<void> {
       <main class="fatal-screen"><h1>Local storage unavailable</h1><p id="fatal-message"></p><button onclick="location.reload()">Retry</button></main>
     `;
     requireElement<HTMLElement>("fatal-message").textContent =
-      error instanceof Error ? error.message : "Sign Vigilante could not start.";
+      error instanceof Error ? error.message : "Sign Spotter could not start.";
   }
 }
 

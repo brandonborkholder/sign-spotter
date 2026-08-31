@@ -1,7 +1,7 @@
 {
   "id": "/sign-vigilante/",
-  "name": "Sign Vigilante",
-  "short_name": "Sign Vigilante",
+  "name": "Sign Spotter",
+  "short_name": "Sign Spotter",
   "description": "Fast capture workflow for Loudoun County sign violations.",
   "start_url": "/sign-vigilante/?capture=1",
   "scope": "/sign-vigilante/",
@@ -40,7 +40,7 @@
     {
       "name": "Capture sign",
       "short_name": "Capture",
-      "description": "Open Sign Vigilante directly to the camera.",
+      "description": "Open Sign Spotter directly to the camera.",
       "url": "/sign-vigilante/?capture=1",
       "icons": [
         {
