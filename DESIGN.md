@@ -53,14 +53,14 @@ These values should live together in one adapter configuration module, not be sc
 - The submission fields include `title`, `description`, `request_type_id`, location/address values, `space_id`, `client_id`, and request-type-specific `custom_field_<id>` values.
 - A successful response is expected to contain `response.status.code === 200` and `response.request_id`.
 - PublicStuff identity is handled by registration/login endpoints and an `api_key`; it is not simply a name/email/phone block in the generic request payload.
+- Request type `1011942` requires a PublicStuff account. A legitimate submission
+  was completed only after account creation and login, and its multipart body
+  included the authenticated session's `api_key`.
 - PublicStuff's own client accepts JPEG, PNG, GIF, TIFF, BMP, and WebP, but the PWA should produce JPEG only for simplicity.
 
-### Unknown until the first integration spike
+### Remaining unknowns after M0
 
-- The exact custom fields, required flags, choice values, `space_id`, privacy setting, and address rules configured for request type `1011942`.
-- Whether request type `1011942` permits anonymous submission.
-- Whether the PublicStuff API allows cross-origin requests from the GitHub Pages origin, including the custom header and multipart upload.
-- Whether contact identity must be a logged-in PublicStuff account for this request type, and which profile fields Loudoun actually receives.
+- The lifetime and renewal behavior of an authenticated PublicStuff `api_key`.
 - Whether the API performs additional anti-abuse checks that are not visible in the JavaScript bundle.
 
 No code should guess custom-field IDs or values. The adapter should load request-type metadata at runtime when possible and fail visibly if the schema no longer matches what was tested.
@@ -142,11 +142,13 @@ A hand-written service worker is sufficient: cache the app shell on install, use
 
 ### Submission integration: progressive decision
 
-1. **Try direct browser submission first.** It is the smallest system and keeps all personal data between the phone and PublicStuff.
-2. **If CORS blocks it, add a minimal proxy.** A Cloudflare Worker is a good fit because it can forward a bounded request without operating a server. The GitHub Pages site remains the PWA host. The worker is a second deployable and must accept only the expected request type, content type, size, and fields.
+1. **Use direct browser submission.** M0 verified the metadata requests and the
+   upload preflight. This is the smallest system and keeps all personal data
+   between the phone and PublicStuff.
+2. **If PublicStuff later blocks the Pages origin, add a minimal proxy.** A Cloudflare Worker is a good fit because it can forward a bounded request without operating a server. The GitHub Pages site remains the PWA host. The worker is a second deployable and must accept only the expected request type, content type, size, and fields.
 3. **Always keep a manual fallback.** Preserve the photo and details, then open the official form URL. Because the PWA cannot inject values into that page, show copy buttons for the address and description and explain that the photo must be selected again.
 
-Do not put a PublicStuff account password, GitHub token, or reusable secret in frontend code. If PublicStuff requires a user login, prefer obtaining and locally retaining the returned API session token after a one-time login. If a proxy becomes necessary, it should forward that token per request rather than owning the user's password.
+Do not put a PublicStuff account password, GitHub token, or reusable secret in frontend code. Obtain and locally retain the PublicStuff API session token after the required one-time login. If a proxy becomes necessary, it should forward that token per request rather than owning the user's password.
 
 ## 7. User experience
 
@@ -155,8 +157,10 @@ Do not put a PublicStuff account password, GitHub token, or reusable secret in f
 The first launch is setup, not camera-first:
 
 1. Explain that the app will store contact details only on this phone and will request camera/location access.
-2. Ask for the minimum details that the verified county flow needs. Start with name, email, and phone in the UI, but only send fields that the integration spike proves are accepted.
-3. If PublicStuff authentication is required, offer a one-time login. Do not retain the password after login.
+2. Ask for the verified required contact details: first and last name,
+   complainant address, email, phone, and contact-disclosure choice.
+3. Require a one-time login to the user's existing PublicStuff account. Store
+   the returned `api_key` locally, but do not retain the password after login.
 4. Save profile/settings locally.
 5. Request camera and location permissions in context.
 6. Continue directly to capture.
@@ -181,7 +185,7 @@ Show:
 - Resolved street address and a small accuracy indicator.
 - **Use current location again** and **Edit address / move pin**.
 - Optional short description, with any verified required custom fields.
-- Private/public status if that is configurable for this request type.
+- A notice that this request type is forced private by Loudoun County.
 - One prominent **Submit report** button.
 
 On submit, disable the button and display progress. Success must show the county request ID and a **Report another** action. Failure must retain the full draft and offer **Retry** plus **Use official form**.
@@ -207,16 +211,17 @@ Guard rules:
 
 ## 9. Local data
 
-Use IndexedDB for the profile, settings, authentication token if required, and at most one pending draft. IndexedDB handles image blobs more reliably than `localStorage`. A tiny repository wrapper is enough; no database library is required.
+Use IndexedDB for the profile, settings, PublicStuff authentication token, and at most one pending draft. IndexedDB handles image blobs more reliably than `localStorage`. A tiny repository wrapper is enough; no database library is required.
 
 Proposed records:
 
 ```ts
 type Profile = {
   displayName: string;
+  contactAddress: string;
   email: string;
   phone: string;
-  publicStuffApiKey?: string;
+  publicStuffApiKey: string;
   updatedAt: string;
 };
 
@@ -355,7 +360,7 @@ Exit: exact payload and transport are known.
 ### M1 — capture PWA
 
 - Vite/TypeScript shell, manifest, icons, service worker, GitHub Pages workflow.
-- Onboarding/profile storage.
+- Onboarding/profile storage and required one-time PublicStuff login.
 - Camera, photo resize, GPS, and review screen.
 - Mock gateway and pending-draft recovery.
 
@@ -404,10 +409,10 @@ Pages origin tested: https://brandonborkholder.github.io
 PublicStuff metadata CORS result: pass (both GETs returned HTTP 200)
 PublicStuff upload preflight result: pass (HTTP 200, ACAO *, POST and PublicStuff-Client allowed)
 Request type anonymous flag: false
-Observed submission identity: api_key multipart field present without a visible login prompt
+Authentication mechanism: required PublicStuff account login; returned api_key is sent in multipart
 Chosen path: direct browser-to-PublicStuff API, with official form fallback
 Evidence:
   - docs/publicstuff-request-submit-redacted.txt
   - docs/publicstuff-request-submit-response.json
-Notes: M1 must establish how first-use setup obtains a valid PublicStuff session credential.
+Notes: M1 must implement one-time login, retain the returned api_key locally, and never store the password.
 ```

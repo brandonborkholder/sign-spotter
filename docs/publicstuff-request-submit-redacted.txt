@@ -58,7 +58,8 @@ Encoding observations
 - client_id appears twice in the observed multipart body.
 - description and user_address were sent as the literal text "undefined".
 - The browser generated the multipart boundary.
-- A PublicStuff api_key was included even though no login prompt was observed.
+- PublicStuff account creation and login were required before the complaint
+  could be submitted; the resulting api_key was included in multipart.
 
 CORS response evidence
 ----------------------
