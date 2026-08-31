@@ -1,5 +1,5 @@
 const CACHE_NAME = "sign-spotter-m1-capture-1";
-const BASE_PATH = "/sign-vigilante/";
+const BASE_PATH = "/sign-spotter/";
 const APP_SHELL = [BASE_PATH, `${BASE_PATH}offline.html`, `${BASE_PATH}manifest.webmanifest`];
 
 self.addEventListener("install", (event) => {
@@ -12,7 +12,7 @@ self.addEventListener("activate", (event) => {
     caches
       .keys()
       .then((keys) =>
-        Promise.all(keys.filter((key) => /^(?:sign-vigilante|sign-spotter)-/.test(key) && key !== CACHE_NAME).map((key) => caches.delete(key))),
+        Promise.all(keys.filter((key) => key.startsWith("sign-spotter-") && key !== CACHE_NAME).map((key) => caches.delete(key))),
       ),
   );
   self.clients.claim();

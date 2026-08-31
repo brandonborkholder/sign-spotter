@@ -1,6 +1,6 @@
 import type { PendingDraft, Profile } from "./types";
 
-const DATABASE_NAME = "sign-vigilante";
+const DATABASE_NAME = "sign-spotter";
 const DATABASE_VERSION = 1;
 const STORE_NAME = "app-state";
 const PROFILE_KEY = "profile";

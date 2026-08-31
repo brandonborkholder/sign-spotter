@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/sign-vigilante/",
+  base: "/sign-spotter/",
   build: {
     sourcemap: true,
   },

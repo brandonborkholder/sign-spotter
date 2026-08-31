@@ -313,7 +313,7 @@ Never allow test mode to submit. Put a persistent **TEST MODE — no reports are
 
 - Build on pushes to the deployment branch with GitHub Actions.
 - Upload the static build as a GitHub Pages artifact.
-- Configure Vite's base path for `/sign-vigilante/` unless a custom domain is added.
+- Configure Vite's base path for `/sign-spotter/` unless a custom domain is added.
 - Enforce HTTPS.
 - Use hashed assets and a visible build/version string in Settings.
 - Install from Android Chrome using **Add to Home screen / Install app**.
