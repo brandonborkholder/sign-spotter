@@ -396,18 +396,18 @@ The MVP is done when all of the following are true on the target Android phone:
 - Success shows a real PublicStuff request ID.
 - Failures preserve the draft and provide retry and official-form fallback actions.
 
-## 17. Architecture decision placeholder
-
-Complete this after M0:
+## 17. Architecture decision
 
 ```text
-Decision date:
-Pages origin tested:
-PublicStuff metadata CORS result:
-PublicStuff upload CORS result:
-Anonymous submission allowed:
-Authentication mechanism:
-Chosen path: direct / proxy / capture-and-handoff
-Evidence fixture(s):
-Notes:
+Decision date: 2026-08-31
+Pages origin tested: https://brandonborkholder.github.io
+PublicStuff metadata CORS result: pass (both GETs returned HTTP 200)
+PublicStuff upload preflight result: pass (HTTP 200, ACAO *, POST and PublicStuff-Client allowed)
+Request type anonymous flag: false
+Observed submission identity: api_key multipart field present without a visible login prompt
+Chosen path: direct browser-to-PublicStuff API, with official form fallback
+Evidence:
+  - docs/publicstuff-request-submit-redacted.txt
+  - docs/publicstuff-request-submit-response.json
+Notes: M1 must establish how first-use setup obtains a valid PublicStuff session credential.
 ```
