@@ -1,0 +1,73 @@
+PublicStuff request_submit evidence
+Captured: 2026-08-30
+Sanitized: 2026-08-31
+
+Endpoint
+--------
+POST https://vc0.publicstuff.com/api/2.0/request_submit
+
+CORS preflight request
+----------------------
+Method: OPTIONS
+Origin: https://iframe.publicstuff.com
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: publicstuff-client
+
+Relevant POST request headers
+-----------------------------
+Accept: */*
+Content-Type: multipart/form-data; boundary=<browser-generated-boundary>
+Origin: https://iframe.publicstuff.com
+PublicStuff-Client: 1295
+Referer: https://iframe.publicstuff.com/
+
+Multipart payload, in observed order
+------------------------------------
+title = " Neighborhood and property zoning complaints"
+description = "undefined"
+request_type_id = "1011942"
+is_private = "1"
+latitude = "39.041586050323474"
+longitude = "-77.52037490740969"
+address = "21040 Sycolin Rd, Ashburn, VA 20147, USA"
+user_address = "undefined"
+long_address = "21040 Sycolin Rd, Ashburn, VA 20147, USA"
+zipcode = "20147"
+space_id = "40448"
+client_id = "1295"
+custom_field_6185 = "\"[redacted-name]\""
+custom_field_6186 = "\"[redacted-contact-address]\""
+custom_field_6187 = "\"[redacted-email]\""
+custom_field_6225 = "\"[redacted-phone]\""
+custom_field_25876 = "\"Illegal signs\""
+custom_field_42345 = "\"No\""
+has_image = "1"
+client_id = "1295"
+device = "iframe"
+api_key = "[redacted-session-credential]"
+uploadedfile:
+  filename = "[redacted-photo].jpg"
+  content_type = "image/jpeg"
+  content = "[removed]"
+
+Encoding observations
+---------------------
+- Ordinary request fields are multipart text values.
+- Every custom field value is JSON-encoded before being added to multipart;
+  scalar strings therefore include literal surrounding double quotes.
+- client_id appears twice in the observed multipart body.
+- description and user_address were sent as the literal text "undefined".
+- The browser generated the multipart boundary.
+- A PublicStuff api_key was included even though no login prompt was observed.
+
+Missing CORS response evidence
+------------------------------
+OPTIONS status: pending
+Access-Control-Allow-Origin: pending
+Access-Control-Allow-Headers: pending
+Access-Control-Allow-Methods: pending
+
+Missing POST response evidence
+------------------------------
+Save the sanitized response as:
+docs/publicstuff-request-submit-response.json
