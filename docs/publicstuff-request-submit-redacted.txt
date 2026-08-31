@@ -63,9 +63,9 @@ Encoding observations
 Missing CORS response evidence
 ------------------------------
 OPTIONS status: pending
-Access-Control-Allow-Origin: pending
-Access-Control-Allow-Headers: pending
-Access-Control-Allow-Methods: pending
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: origin, x-requested-with, content-type,Authorization,Content-Type,Accept,Origin,User-Agent,DNT,Cache-Control,X-Mx-ReqToken,Keep-Alive,X-Requested-With,If-Modified-Since,PublicStuff-Session-Token,PublicStuff-Client,PublicStuff-Locale
+Access-Control-Allow-Methods: PUT, GET, POST, DELETE, OPTIONS
 
 Missing POST response evidence
 ------------------------------
