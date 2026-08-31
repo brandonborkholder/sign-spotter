@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCoordinates, locationQuality } from "../src/location";
+import { formatCoordinates, getLocationReadiness, locationQuality } from "../src/location";
 
 describe("location helpers", () => {
   it("formats coordinates without excessive precision", () => {
@@ -16,5 +16,18 @@ describe("location helpers", () => {
   it("warns when accuracy is worse than 100 meters", () => {
     expect(locationQuality(100)).toBe("good");
     expect(locationQuality(101)).toBe("warning");
+  });
+});
+
+describe("location readiness", () => {
+  it("reports blocked location permission", async () => {
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true,
+      value: {
+        geolocation: {},
+        permissions: { query: async () => ({ state: "denied" }) },
+      },
+    });
+    await expect(getLocationReadiness()).resolves.toBe("blocked");
   });
 });

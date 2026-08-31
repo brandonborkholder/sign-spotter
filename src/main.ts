@@ -7,7 +7,7 @@ import {
   resizePhotoFile,
   startCamera,
 } from "./camera";
-import { formatCoordinates, getCurrentLocation, locationQuality } from "./location";
+import { formatCoordinates, getCurrentLocation, getLocationReadiness, locationQuality } from "./location";
 import { reverseGeocode } from "./geocoding";
 import { completeMockReport, MockValidationError } from "./mock-gateway";
 import { AppRepository } from "./storage";
@@ -204,7 +204,7 @@ function renderCapture(): void {
         <video id="camera-preview" playsinline muted></video>
         <div class="viewfinder" aria-hidden="true"><span></span></div>
         <div class="camera-message" id="camera-message">Starting rear camera…</div>
-        <div class="capture-hud"><div class="hud-chip">Take one clear photo</div></div>
+        <div class="capture-hud"><div id="zoom-chip" class="hud-chip">Starting 2× zoom…</div><div id="location-chip" class="hud-chip">Checking location…</div></div>
         <div class="camera-actions">
           <label class="photo-fallback" for="photo-file">Choose photo</label>
           <input id="photo-file" class="sr-only" type="file" accept="image/*" capture="environment" />
@@ -223,6 +223,20 @@ async function activateCapture(): Promise<void> {
   const video = requireElement<HTMLVideoElement>("camera-preview");
   const shutter = requireElement<HTMLButtonElement>("shutter");
   const cameraMessage = requireElement<HTMLElement>("camera-message");
+  const zoomChip = requireElement<HTMLElement>("zoom-chip");
+  const locationChip = requireElement<HTMLElement>("location-chip");
+
+  void getLocationReadiness().then((readiness) => {
+    if (attempt !== captureAttempt) return;
+    const labels = {
+      ready: "Location ready",
+      prompt: "Location requested after photo",
+      blocked: "Enable location in Chrome settings",
+      unsupported: "Location unavailable",
+    } as const;
+    locationChip.textContent = labels[readiness];
+    locationChip.classList.toggle("location-error", readiness === "blocked" || readiness === "unsupported");
+  });
 
   try {
     cameraSession = await startCamera(video);
@@ -231,6 +245,7 @@ async function activateCapture(): Promise<void> {
       cameraSession = null;
       return;
     }
+    zoomChip.textContent = cameraSession.zoomLabel;
     cameraMessage.hidden = true;
     shutter.disabled = false;
   } catch (error) {
@@ -242,7 +257,7 @@ async function activateCapture(): Promise<void> {
   shutter.addEventListener("click", async () => {
     shutter.disabled = true;
     try {
-      await storeCapturedPhoto(await captureVideoFrame(video));
+      await storeCapturedPhoto(await captureVideoFrame(video, cameraSession?.digitalZoom ?? 1));
     } catch (error) {
       cameraMessage.hidden = false;
       cameraMessage.textContent = error instanceof Error ? error.message : "Photo failed.";

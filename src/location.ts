@@ -7,6 +7,21 @@ export class LocationError extends Error {
   }
 }
 
+export type LocationReadiness = "ready" | "prompt" | "blocked" | "unsupported";
+
+export async function getLocationReadiness(): Promise<LocationReadiness> {
+  if (!("geolocation" in navigator)) return "unsupported";
+  if (!("permissions" in navigator)) return "prompt";
+  try {
+    const status = await navigator.permissions.query({ name: "geolocation" });
+    if (status.state === "granted") return "ready";
+    if (status.state === "denied") return "blocked";
+    return "prompt";
+  } catch {
+    return "prompt";
+  }
+}
+
 export function getCurrentLocation(): Promise<CapturedLocation> {
   if (!("geolocation" in navigator)) {
     return Promise.reject(new LocationError("This browser does not provide location access."));
@@ -24,7 +39,7 @@ export function getCurrentLocation(): Promise<CapturedLocation> {
       (error) => {
         const messages: Record<number, string> = {
           1: "Location permission was denied. Allow it in Chrome site settings and retry.",
-          2: "Your location is currently unavailable. Move outdoors or retry.",
+          2: "Turn on Android Location, then tap Retry location.",
           3: "Location took too long. Retry when the phone has a clearer GPS signal.",
         };
         reject(new LocationError(messages[error.code] ?? "Could not determine location."));

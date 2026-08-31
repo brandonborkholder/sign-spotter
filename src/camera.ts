@@ -3,6 +3,8 @@ export const JPEG_QUALITY = 0.82;
 
 export type CameraSession = {
   stream: MediaStream;
+  digitalZoom: number;
+  zoomLabel: string;
   stop(): void;
 };
 
@@ -28,6 +30,24 @@ export function calculateContainSize(
   };
 }
 
+export function calculateZoomCrop(
+  width: number,
+  height: number,
+  zoom = 1,
+): { x: number; y: number; width: number; height: number } {
+  if (width <= 0 || height <= 0 || zoom < 1) {
+    throw new CameraError("The camera returned an invalid zoom area.");
+  }
+  const cropWidth = width / zoom;
+  const cropHeight = height / zoom;
+  return {
+    x: (width - cropWidth) / 2,
+    y: (height - cropHeight) / 2,
+    width: cropWidth,
+    height: cropHeight,
+  };
+}
+
 function canvasBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
@@ -45,15 +65,44 @@ async function drawToJpeg(
   source: CanvasImageSource,
   sourceWidth: number,
   sourceHeight: number,
+  zoom = 1,
 ): Promise<Blob> {
-  const size = calculateContainSize(sourceWidth, sourceHeight);
+  const crop = calculateZoomCrop(sourceWidth, sourceHeight, zoom);
+  const size = calculateContainSize(crop.width, crop.height);
   const canvas = document.createElement("canvas");
   canvas.width = size.width;
   canvas.height = size.height;
   const context = canvas.getContext("2d", { alpha: false });
   if (!context) throw new CameraError("Chrome could not prepare the photograph.");
-  context.drawImage(source, 0, 0, size.width, size.height);
+  context.drawImage(
+    source,
+    crop.x,
+    crop.y,
+    crop.width,
+    crop.height,
+    0,
+    0,
+    size.width,
+    size.height,
+  );
   return canvasBlob(canvas);
+}
+
+type ZoomCapabilities = MediaTrackCapabilities & {
+  zoom?: { min: number; max: number; step?: number };
+};
+
+export async function applyPreferredZoom(track: MediaStreamTrack, preferred = 2): Promise<boolean> {
+  const capabilities = track.getCapabilities?.() as ZoomCapabilities | undefined;
+  const zoom = capabilities?.zoom;
+  if (!zoom || !Number.isFinite(zoom.min) || !Number.isFinite(zoom.max)) return false;
+  if (zoom.min > preferred || zoom.max < preferred) return false;
+  try {
+    await track.applyConstraints({ advanced: [{ zoom: preferred } as MediaTrackConstraintSet] });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function startCamera(video: HTMLVideoElement): Promise<CameraSession> {
@@ -69,10 +118,15 @@ export async function startCamera(video: HTMLVideoElement): Promise<CameraSessio
         height: { ideal: 1080 },
       },
     });
+    const hardwareZoom = await applyPreferredZoom(stream.getVideoTracks()[0]!);
+    const digitalZoom = hardwareZoom ? 1 : 2;
     video.srcObject = stream;
+    video.classList.toggle("digital-zoom-2x", digitalZoom === 2);
     await video.play();
     return {
       stream,
+      digitalZoom,
+      zoomLabel: hardwareZoom ? "2× zoom" : "2× digital zoom",
       stop() {
         stream.getTracks().forEach((track) => track.stop());
         video.srcObject = null;
@@ -88,8 +142,8 @@ export async function startCamera(video: HTMLVideoElement): Promise<CameraSessio
   }
 }
 
-export function captureVideoFrame(video: HTMLVideoElement): Promise<Blob> {
-  return drawToJpeg(video, video.videoWidth, video.videoHeight);
+export function captureVideoFrame(video: HTMLVideoElement, digitalZoom = 1): Promise<Blob> {
+  return drawToJpeg(video, video.videoWidth, video.videoHeight, digitalZoom);
 }
 
 export async function resizePhotoFile(file: File): Promise<Blob> {
