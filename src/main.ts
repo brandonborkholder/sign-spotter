@@ -327,7 +327,7 @@ function renderReview(): void {
           <button id="refresh-location" class="text-button compact-retry" type="button">Retry location</button>
           <label class="compact-address">Sign location<input id="violation-address" autocomplete="street-address" required /><span id="address-status" class="field-hint">Getting your current location…</span></label>
           <a class="map-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">Address © OpenStreetMap contributors</a>
-          <details class="optional-details"><summary>Add an optional note</summary><textarea id="description" rows="2" placeholder="Anything else staff should know?"></textarea></details>
+          <input id="description" type="hidden" />
           <p class="compact-summary"><strong>Photo + location</strong><span id="contact-summary"></span></p>
           <p id="review-feedback" class="feedback" role="alert"></p>
           <div class="submit-dock">
