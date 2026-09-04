@@ -9,13 +9,13 @@ import {
 } from "./camera";
 import { formatCoordinates, getCurrentLocation, getLocationReadiness, locationQuality } from "./location";
 import { reverseGeocode } from "./geocoding";
-import { completeMockReport, MockValidationError } from "./mock-gateway";
+import { submitReport, SubmissionError } from "./submission";
 import { AppRepository } from "./storage";
-import type { CapturedLocation, MockReceipt, PendingDraft, Profile } from "./types";
+import type { CapturedLocation, PendingDraft, Profile, SubmissionReceipt } from "./types";
 
 type Screen = "onboarding" | "capture" | "review" | "settings" | "success";
 
-const BUILD = "m1-capture-2";
+const BUILD = "m2-submit-1";
 const OFFICIAL_FORM =
   "https://iframe.publicstuff.com/#/?client_id=1295&request_type_id=1011942";
 const repository = new AppRepository();
@@ -26,7 +26,7 @@ let screen: Screen = "onboarding";
 let previousScreen: "capture" | "review" = "capture";
 let profile: Profile | null = null;
 let draft: PendingDraft | null = null;
-let receipt: MockReceipt | null = null;
+let receipt: SubmissionReceipt | null = null;
 let cameraSession: CameraSession | null = null;
 let captureAttempt = 0;
 let reviewPhotoUrl: string | null = null;
@@ -67,7 +67,9 @@ function appHeader(title: string, showSettings = false): string {
       </div>
       ${showSettings ? '<button id="open-settings" class="icon-button" type="button" aria-label="Settings">⚙</button>' : ""}
     </header>
-    <div class="test-ribbon"><strong>M1 test mode</strong><span>No complaint will be sent</span></div>
+    ${import.meta.env.DEV
+      ? '<div class="test-ribbon"><strong>Development mode</strong><span>No complaint will be sent</span></div>'
+      : '<div class="live-ribbon"><strong>Live submission</strong><span>Submit sends to Loudoun County</span></div>'}
   `;
 }
 
@@ -348,9 +350,9 @@ function renderReview(): void {
           <div class="submit-dock">
             <div class="submit-actions">
               <button id="reset-capture" class="secondary-button" type="button">Reset</button>
-              <button id="complete-mock" class="primary-button" type="submit" disabled>Submit (M1 test)</button>
+              <button id="submit-report" class="primary-button" type="submit" disabled>Submit report</button>
             </div>
-            <span>No complaint will be sent</span>
+            <span>This sends the photo and details to Loudoun County</span>
           </div>
         </form>
       </section>
@@ -361,6 +363,14 @@ function renderReview(): void {
   requireElement<HTMLTextAreaElement>("description").value = draft.description;
   requireElement<HTMLElement>("contact-summary").textContent =
     `${profile.displayName} · private report`;
+  if (draft.status === "uncertain") {
+    setFeedback(
+      "review-feedback",
+      "A previous submission had no confirmation. Check PublicStuff before retrying to avoid a duplicate.",
+    );
+  } else if (draft.status === "failed") {
+    setFeedback("review-feedback", "The previous submission failed. Review the details and retry.");
+  }
   renderGpsPanel();
   bindSettingsButton("review");
 
@@ -393,18 +403,38 @@ function renderReview(): void {
     const form = event.currentTarget as HTMLFormElement;
     if (!form.reportValidity()) return;
     await saveReviewFields();
-    const button = requireElement<HTMLButtonElement>("complete-mock");
-    setBusy(button, true, "Validating locally…");
+    if (
+      draft!.status === "uncertain" &&
+      !window.confirm(
+        "PublicStuff may already have received this report. Check your account first. Retry anyway?",
+      )
+    ) {
+      return;
+    }
+    const button = requireElement<HTMLButtonElement>("submit-report");
+    setBusy(button, true, "Submitting…");
     setFeedback("review-feedback", "");
     try {
-      receipt = await completeMockReport(profile!, draft!);
+      draft!.status = "uncertain";
+      await repository.saveDraft(draft!);
+      receipt = import.meta.env.DEV
+        ? {
+            requestId: `DEV-${draft!.id.slice(0, 8).toUpperCase()}`,
+            submittedAt: new Date().toISOString(),
+            live: false,
+          }
+        : await submitReport(profile!, draft!);
       await repository.deleteDraft();
       draft = null;
       navigate("success");
     } catch (error) {
+      if (draft) {
+        draft.status = error instanceof SubmissionError && error.kind === "uncertain" ? "uncertain" : "failed";
+        await repository.saveDraft(draft);
+      }
       setFeedback(
         "review-feedback",
-        error instanceof MockValidationError ? error.message : "Local test failed.",
+        error instanceof SubmissionError ? error.message : "The report could not be submitted.",
       );
     } finally {
       setBusy(button, false, "");
@@ -443,7 +473,7 @@ async function refreshDraftLocation(button?: HTMLButtonElement): Promise<void> {
 }
 
 function updateSubmitState(): void {
-  const button = document.getElementById("complete-mock") as HTMLButtonElement | null;
+  const button = document.getElementById("submit-report") as HTMLButtonElement | null;
   const address = document.getElementById("violation-address") as HTMLInputElement | null;
   if (button) button.disabled = !draft?.location || !address?.value.trim();
 }
@@ -585,20 +615,21 @@ function renderSettings(): void {
 }
 
 function renderSuccess(): void {
+  const live = receipt?.live === true;
   root.innerHTML = `
     <main class="page success-page">
-      ${appHeader("Capture test complete")}
+      ${appHeader(live ? "Report submitted" : "Development test complete")}
       <section class="success-card">
         <div class="success-icon" aria-hidden="true">✓</div>
-        <p class="kicker">Nothing was sent</p>
-        <h2>Your capture flow worked.</h2>
-        <p>The photograph and pending draft were removed from local storage after mock validation.</p>
-        <dl><div><dt>Local test receipt</dt><dd id="receipt-id"></dd></div></dl>
-        <button id="capture-another" class="primary-button" type="button">Capture another test</button>
+        <p class="kicker">${live ? "Received by PublicStuff" : "Nothing was sent"}</p>
+        <h2>${live ? "Loudoun County received your report." : "The local workflow completed."}</h2>
+        <p>${live ? "The pending photograph was removed from this device after PublicStuff confirmed the submission." : "Development mode validated and removed the local draft without contacting the complaint endpoint."}</p>
+        <dl><div><dt>${live ? "Request ID" : "Local receipt"}</dt><dd id="receipt-id"></dd></div></dl>
+        <button id="capture-another" class="primary-button" type="button">Report another sign</button>
       </section>
     </main>
   `;
-  requireElement<HTMLElement>("receipt-id").textContent = receipt?.id ?? "M1-COMPLETE";
+  requireElement<HTMLElement>("receipt-id").textContent = receipt?.requestId ?? "Unknown";
   requireElement<HTMLButtonElement>("capture-another").addEventListener("click", () =>
     navigate("capture"),
   );

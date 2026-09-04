@@ -381,6 +381,9 @@ Exit: installable on the phone and usable end to end without transmitting.
 
 Exit: a normal launch-to-confirmed-report flow works on the target phone.
 
+Implementation status: built in `m2-submit-1`; awaiting one legitimate Android
+field submission and verification in the PublicStuff account.
+
 ### M3 — iterate from real use
 
 Potential improvements only after the MVP is used:

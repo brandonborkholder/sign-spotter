@@ -26,10 +26,11 @@ export type PendingDraft = {
   violationAddress: string;
   description: string;
   capturedAt: string;
-  status: "reviewing" | "failed";
+  status: "reviewing" | "uncertain" | "failed";
 };
 
-export type MockReceipt = {
-  id: string;
-  completedAt: string;
+export type SubmissionReceipt = {
+  requestId: string;
+  submittedAt: string;
+  live: boolean;
 };

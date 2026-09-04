@@ -2,13 +2,14 @@
 
 Android-first PWA for quickly capturing Loudoun County sign violations.
 
-Current milestone: **M1 capture PWA**. It supports first-use contact setup,
-PublicStuff login, rear-camera capture, GPS, local draft recovery, and a review
-flow. The M1 build deliberately cannot submit a complaint.
+Current milestone: **M2 real submission MVP**. It supports first-use contact
+setup, PublicStuff login, rear-camera capture, GPS, local draft recovery, and an
+explicit authenticated submission to Loudoun County through PublicStuff.
 
 - [MVP design](DESIGN.md)
 - [M0 integration evidence](docs/M0.md)
 - [M1 Android acceptance test](docs/M1.md)
+- [M2 live-submission acceptance test](docs/M2.md)
 
 ## Development
 
@@ -19,5 +20,5 @@ npm test
 npm run build
 ```
 
-The production build runs a safety assertion that fails if the PublicStuff
-complaint submission endpoint appears in `dist`.
+Local development never sends complaints. The production build verifies that
+the real PublicStuff submission adapter is present in the deployed artifact.

@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:safety": "node scripts/assert-no-submit-endpoint.mjs",
+    "test:safety": "node scripts/assert-m2-submit-artifact.mjs",
     "icons": "node scripts/generate-icons.mjs"
   },
   "devDependencies": {

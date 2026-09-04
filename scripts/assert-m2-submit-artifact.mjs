@@ -1,8 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 
-const forbidden = ["request" + "_submit"];
-
 async function filesUnder(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const nested = await Promise.all(
@@ -14,14 +12,16 @@ async function filesUnder(directory) {
   return nested.flat();
 }
 
+let artifact = "";
 for (const file of await filesUnder("dist")) {
-  if (![".html", ".js", ".css", ".json", ".map"].includes(extname(file))) continue;
-  const content = await readFile(file, "utf8");
-  for (const value of forbidden) {
-    if (content.includes(value)) {
-      throw new Error(`M1 safety failure: ${value} found in ${file}`);
-    }
+  if (![".html", ".js", ".json"].includes(extname(file))) continue;
+  artifact += await readFile(file, "utf8");
+}
+
+for (const required of ["request_submit", "custom_field_25876", "uploadedfile"]) {
+  if (!artifact.includes(required)) {
+    throw new Error(`M2 build failure: required submission marker ${required} is missing.`);
   }
 }
 
-console.log("M1 safety check passed: production artifact has no complaint submission endpoint.");
+console.log("M2 artifact check passed: real submission adapter is present.");
